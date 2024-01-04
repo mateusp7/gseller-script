@@ -23,9 +23,6 @@ export async function downloadAndExtractRepo(
     `https://codeload.github.com/${username}/${name}/tar.gz/${branch}`
   )
 
-  console.log('root', root)
-  console.log('filePath', filePath)
-
   await tar.x({
     file: tempFile,
     cwd: root,

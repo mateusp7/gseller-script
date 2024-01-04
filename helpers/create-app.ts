@@ -1,8 +1,10 @@
 import retry from 'async-retry'
 import chalk from 'chalk'
+import fs from 'fs'
 import path from 'path'
 import { downloadAndExtractExample, downloadAndExtractRepo } from './download'
 import { existsInRepo, getRepoInfo, hasRepo } from './example'
+import { install } from './install'
 import { isWriteable } from './is-writeable'
 import { makeDir } from './make-dir'
 
@@ -107,32 +109,40 @@ export async function createApp({
   const packageJsonPath = path.join(root, 'package.json')
   let hasPackageJson = false
 
-  // if (example) {
-  //   try {
-  //     if (repoInfo) {
-  //       const repoInfo2 = repoInfo
-  //       console.log(
-  //         `Baixando arquivos do repositório ${chalk.cyan(
-  //           example
-  //         )}. Isso pode demorar um pouco.`
-  //       )
-  //       console.log()
-  //       await retry(() => downloadAndExtractRepo(root, repoInfo2), {
-  //         retries: 3,
-  //       })
-  //     } else {
-  //       console.log(
-  //         `Baixando arquivos do repositório ${chalk.cyan(
-  //           example
-  //         )}. Isso pode demorar um pouco.`
-  //       )
-  //       console.log()
-  //       await retry(() => downloadAndExtractExample(root, example), {
-  //         retries: 3,
-  //       })
-  //     }
-  //   } catch (reason) {}
-  // }
+  if (example) {
+    try {
+      if (repoInfo) {
+        const repoInfo2 = repoInfo
+        console.log(
+          `Baixando arquivos do repositório ${chalk.cyan(
+            example
+          )}. Isso pode demorar um pouco.`
+        )
+        console.log()
+        await retry(() => downloadAndExtractRepo(root, repoInfo2), {
+          retries: 3,
+        })
+      } else {
+        console.log(
+          `Baixando arquivos do repositório ${chalk.cyan(
+            example
+          )}. Isso pode demorar um pouco.`
+        )
+        console.log()
+        await retry(() => downloadAndExtractExample(root, example), {
+          retries: 3,
+        })
+      }
+    } catch (reason) {}
+    hasPackageJson = fs.existsSync(packageJsonPath)
+    if (hasPackageJson) {
+      console.log('Installing packages. This might take a couple of minutes.')
+      console.log()
+
+      await install('yarn', true)
+      console.log()
+    }
+  }
   let cdpath: string
   if (path.join(originalDirectory, appName) === appPath) {
     cdpath = appName
