@@ -1,2 +1,7 @@
-node_modules
-build
+/src
+/node_modules
+ 
+.env
+ 
+tsconfig.json
+tsup.config.ts
