@@ -6,10 +6,9 @@ import path from 'path'
 import chalk from 'chalk'
 import prompts from 'prompts'
 import { z } from 'zod'
-import { addNextGlobal, startNextProject } from './install'
+import { createApp } from './create-app'
 import { logger } from './logger'
 import { makeDir } from './make-dir'
-import { createApp } from './create-app'
 
 const initOptionsSchema = z.object({
   cwd: z.string(),

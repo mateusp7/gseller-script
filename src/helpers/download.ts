@@ -38,6 +38,7 @@ export async function downloadAndExtractRepo(
   await fs.unlink(tempFile)
 }
 
+
 export async function downloadAndExtractExample(root: string, name: string) {
   if (name === '__internal-testing-retry') {
     throw new Error('This is an internal example for testing the CLI.')
