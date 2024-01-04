@@ -6,9 +6,10 @@ import path from 'path'
 import chalk from 'chalk'
 import prompts from 'prompts'
 import { z } from 'zod'
-import { createApp } from './create-app'
+import { addNextGlobal, startNextProject } from './install'
 import { logger } from './logger'
 import { makeDir } from './make-dir'
+import { createApp } from './create-app'
 
 const initOptionsSchema = z.object({
   cwd: z.string(),
@@ -36,9 +37,9 @@ export const init = new Command()
         process.exit(1)
       }
 
-      await promptForConfig(cwd)
+      const prompt = await promptQuestions(cwd)
 
-      await runInit(cwd, example)
+      await runInit(prompt, example)
 
       logger.info('')
       logger.info(`Inicialização do projeto realizada com sucesso.`)
@@ -46,7 +47,7 @@ export const init = new Command()
     } catch (err) {}
   })
 
-export async function promptForConfig(cwd: string) {
+export async function promptQuestions(cwd: string) {
   const highlight = (text: string) => chalk.cyan(text)
 
   const options = await prompts([
@@ -55,39 +56,11 @@ export async function promptForConfig(cwd: string) {
       name: 'path',
       message: 'Qual o nome do projeto?',
     },
-    // {
-    //   type: 'text',
-    //   name: 'tailwindCss',
-    //   message: `Qual a localização do seu arquivo ${highlight(
-    //     'global.css'
-    //   )} ou ${highlight('globals.css')}?`,
-    //   initial: defaultConfig?.tailwind.css ?? DEFAULT_TAILWIND_CSS,
-    // },
-    // {
-    //   type: 'text',
-    //   name: 'tailwindConfig',
-    //   message: `Qual a localização do seu arquivo ${highlight(
-    //     'tailwind.config.js'
-    //   )}?`,
-    //   initial: defaultConfig?.tailwind.config ?? DEFAULT_TAILWIND_CONFIG,
-    // },
-    // {
-    //   type: 'text',
-    //   name: 'components',
-    //   message: `Configure alias para sua para de ${highlight('components')}:`,
-    //   initial: defaultConfig?.aliases['components'] ?? DEFAULT_COMPONENTS,
-    // },
-    // {
-    //   type: 'text',
-    //   name: 'utils',
-    //   message: `Configure alias para sua para de ${highlight('utils')}:`,
-    //   initial: defaultConfig?.aliases['utils'] ?? DEFAULT_UTILS,
-    // },
   ])
 
   logger.info('')
 
-  const root = cwd + '/' + options.path
+  const root = `${cwd}/${options.path}`
   const cwdPath = existsSync(root)
 
   if (cwdPath) {
@@ -99,13 +72,18 @@ export async function promptForConfig(cwd: string) {
   ).start()
 
   await makeDir(cwd + '/' + options.path)
+
   spinner.succeed()
+
+  return root
 }
 
 export async function runInit(cwd: string, example: string) {
+  // await addNextGlobal()
+  // await startNextProject(cwd)
   try {
     await createApp({
-      appPath: cwd + '/gseller',
+      appPath: cwd,
       example: example,
     })
   } catch (reason) {}

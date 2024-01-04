@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import spawn from 'cross-spawn'
+import ora from 'ora'
 
 export async function install(
   /** Indicate which package manager to use. */
@@ -42,4 +43,40 @@ export async function install(
       resolve()
     })
   })
+}
+
+export async function addNextGlobal(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const spinner = ora(`Iniciando instalação do next globalmente`).start()
+    const child = spawn('npm', ['i', '-g', 'create-next-app'])
+    spinner.succeed()
+    child.on('close', (code) => {
+      if (code !== 0) {
+        spinner.fail(
+          'Erro ao instalar next globalmente. Por favor, tente novamente'
+        )
+        return reject(new Error('Failed'))
+      }
+      return resolve()
+    })
+  })
+}
+
+export async function startNextProject(cwd: string): Promise<void> {
+  {
+    return new Promise((resolve, reject) => {
+      const spinner = ora(`Iniciando instalação do app next`).start()
+      const child = spawn('npx', ['create-next-app@latest', cwd], {
+        stdio: 'inherit',
+        cwd,
+      })
+      spinner.succeed()
+      child.on('close', (code) => {
+        if (code !== 0) {
+          return reject(new Error('Failed'))
+        }
+        return resolve()
+      })
+    })
+  }
 }
