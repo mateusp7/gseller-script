@@ -131,18 +131,17 @@ export async function createGsellerJson(
   config: z.infer<typeof rawConfigSchema>
 ) {
   logger.info('')
-  const spinner = ora(`Criando arquivo gseller.json...`).start()
+  const spinner = ora(`Criando arquivo ${chalk.blue('gseller.json')}`).start()
 
   const targetPath = path.resolve(cwd, 'gseller.json')
   await fs.writeFile(targetPath, JSON.stringify(config, null, 2), 'utf-8')
   spinner.succeed()
+  logger.info('')
 
   return await resolveConfigPaths(cwd, config)
 }
 
 export async function runInit(cwd: string, config: Config) {
-  const spinner = ora(`Iniciando projeto`)?.start()
-
   for (const [key, resolvedPath] of Object.entries(config.resolvedPaths)) {
     // Determine if the path is a file or directory.
     // TODO: is there a better way to do this?
@@ -176,6 +175,9 @@ export async function runInit(cwd: string, config: Config) {
     tailwindConfigTemplate = TAILWIND_CONFIG
   }
 
+  const spinnerWriteTailwindConfig = ora(
+    `Criando arquivo ${chalk.blue('tailwind.config.ts')}`
+  )?.start()
   await fs.writeFile(
     config.resolvedPaths.tailwindConfig,
     template(tailwindConfigTemplate)({
@@ -184,21 +186,33 @@ export async function runInit(cwd: string, config: Config) {
     }),
     'utf8'
   )
+  spinnerWriteTailwindConfig.succeed()
+  logger.info('')
 
+  const spinnerWriteUtils = ora(
+    `Criando arquivo ${chalk.blue('utils')}`
+  )?.start()
   await fs.writeFile(
     `${config.resolvedPaths.utils}.${extension}`,
     extension === 'ts' ? UTILS : UTILS_JS,
     'utf8'
   )
-
-  spinner.succeed()
+  spinnerWriteUtils.succeed()
   logger.info('')
 
   const dependenciesSpinner = ora(`Instalando dependências...`)?.start()
-
   const packageManager = await getPackageManager(cwd)
 
   const deps = [...PROJECT_DEPENDENCIES]
+
+  logger.info('')
+  logger.info('')
+  logger.info('Dependências')
+  logger.info('')
+  deps.forEach((dep) => {
+    logger.info(`- ${dep}`)
+  })
+  logger.info('')
 
   await execa(
     packageManager,
