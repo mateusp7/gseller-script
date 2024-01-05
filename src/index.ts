@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
-import { init } from './helpers/init'
+import { init } from './commands/init'
 
 const program = new Command()
 async function main() {
