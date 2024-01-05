@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { Command } from 'commander'
-import { add } from './commands/add'
 import { init } from './commands/init'
 
 const program = new Command()
@@ -10,7 +9,7 @@ async function main() {
     .description('Criar um template teste')
     .version('1.0.0', '-v, --version', 'display the version number')
 
-  program.addCommand(init).addCommand(add)
+  program.addCommand(init)
   program.parse()
 }
 
