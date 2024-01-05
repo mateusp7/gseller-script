@@ -1,5 +1,5 @@
 {
-  "name": "gseller-template",
+  "name": "gseller-template-v1",
   "version": "0.0.1",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
