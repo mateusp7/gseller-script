@@ -27,6 +27,7 @@ import {
   resolveConfigPaths,
 } from '../helpers/get-config'
 import { getPackageManager } from '../helpers/get-package-manager'
+import { handleError } from '../helpers/handler-error'
 import { logger } from '../helpers/logger'
 
 const initOptionsSchema = z.object({
@@ -37,7 +38,7 @@ const initOptionsSchema = z.object({
 export const init = new Command()
   .command('init')
   .description('Iniciar projeto boilerplate Gseller')
-  .option('-y, --yes', 'pular a confirmação de criação do projeto', false)
+  .option('-y, --yes', 'Pular a confirmação de criação do projeto', false)
   .option(
     '-c, --cwd <cwd>',
     'Diretório de trabalho. O padrão é o diretório atual.',
@@ -61,7 +62,9 @@ export const init = new Command()
       logger.info('')
       logger.info(`Inicialização do projeto realizada com sucesso.`)
       logger.info('')
-    } catch (err) {}
+    } catch (err) {
+      handleError(err)
+    }
   })
 
 export async function promptForConfig(defaultConfig: Config | null = null) {
