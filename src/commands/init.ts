@@ -4,19 +4,29 @@ import ora from 'ora'
 import path from 'path'
 
 import chalk from 'chalk'
+import { execa } from 'execa'
+import template from 'lodash.template'
 import prompts from 'prompts'
 import { z } from 'zod'
-import { createApp } from '../helpers/create-app'
 import {
-  Config,
   DEFAULT_COMPONENTS,
   DEFAULT_GRAPHQL,
   DEFAULT_TAILWIND_CONFIG,
   DEFAULT_TAILWIND_CSS,
   DEFAULT_UTILS,
+  PROJECT_DEPENDENCIES,
+  TAILWIND_CONFIG,
+  TAILWIND_CONFIG_TS,
+  UTILS,
+  UTILS_JS,
+} from '../helpers/constants'
+import {
+  Config,
   getConfig,
   rawConfigSchema,
+  resolveConfigPaths,
 } from '../helpers/get-config'
+import { getPackageManager } from '../helpers/get-package-manager'
 import { logger } from '../helpers/logger'
 
 const initOptionsSchema = z.object({
@@ -34,8 +44,6 @@ export const init = new Command()
     process.cwd()
   )
   .action(async (opts) => {
-    const example = 'https://github.com/mateusp7/grv'
-
     try {
       const options = initOptionsSchema.parse(opts)
       const cwd = path.resolve(options.cwd)
@@ -46,9 +54,9 @@ export const init = new Command()
       }
 
       const existingConfig = await getConfig(cwd)
-      const prompt = await promptForConfig(existingConfig)
+      const promptConfig = await promptForConfig(existingConfig)
 
-      // await runInit(prompt, example)
+      await runInit(cwd, promptConfig)
 
       logger.info('')
       logger.info(`Inicialização do projeto realizada com sucesso.`)
@@ -112,9 +120,7 @@ export async function promptForConfig(defaultConfig: Config | null = null) {
   const resolvedProjectPath = path.resolve()
   logger.info('')
 
-  createGsellerJson(resolvedProjectPath, config)
-
-  return resolvedProjectPath
+  return createGsellerJson(resolvedProjectPath, config)
 }
 
 export async function createGsellerJson(
@@ -127,15 +133,77 @@ export async function createGsellerJson(
   const targetPath = path.resolve(cwd, 'gseller.json')
   await fs.writeFile(targetPath, JSON.stringify(config, null, 2), 'utf-8')
   spinner.succeed()
+
+  return await resolveConfigPaths(cwd, config)
 }
 
-export async function runInit(cwd: string, example: string) {
-  // await addNextGlobal()
-  // await startNextProject(cwd)
-  try {
-    await createApp({
-      appPath: cwd,
-      example: example,
-    })
-  } catch (reason) {}
+export async function runInit(cwd: string, config: Config) {
+  const spinner = ora(`Iniciando projeto`)?.start()
+
+  for (const [key, resolvedPath] of Object.entries(config.resolvedPaths)) {
+    // Determine if the path is a file or directory.
+    // TODO: is there a better way to do this?
+    let dirname = path.extname(resolvedPath)
+      ? path.dirname(resolvedPath)
+      : resolvedPath
+
+    // If the utils alias is set to something like "@/lib/utils",
+    // assume this is a file and remove the "utils" file name.
+    // TODO: In future releases we should add support for individual utils.
+    if (key === 'utils' && resolvedPath.endsWith('/utils')) {
+      // Remove /utils at the end.
+      dirname = dirname.replace(/\/utils$/, '')
+    }
+
+    if (!existsSync(dirname)) {
+      await fs.mkdir(dirname, { recursive: true })
+    }
+  }
+
+  const extension = config.tsx ? 'ts' : 'js'
+
+  const tailwindConfigExtension = path.extname(
+    config.resolvedPaths.tailwindConfig
+  )
+
+  let tailwindConfigTemplate: string
+  if (tailwindConfigExtension === '.ts') {
+    tailwindConfigTemplate = TAILWIND_CONFIG_TS
+  } else {
+    tailwindConfigTemplate = TAILWIND_CONFIG
+  }
+
+  await fs.writeFile(
+    config.resolvedPaths.tailwindConfig,
+    template(tailwindConfigTemplate)({
+      extension,
+      prefix: '',
+    }),
+    'utf8'
+  )
+
+  await fs.writeFile(
+    `${config.resolvedPaths.utils}.${extension}`,
+    extension === 'ts' ? UTILS : UTILS_JS,
+    'utf8'
+  )
+
+  spinner.succeed()
+  logger.info('')
+
+  const dependenciesSpinner = ora(`Instalando dependências...`)?.start()
+
+  const packageManager = await getPackageManager(cwd)
+
+  const deps = [...PROJECT_DEPENDENCIES]
+
+  await execa(
+    packageManager,
+    [packageManager === 'npm' ? 'install' : 'add', ...deps],
+    {
+      cwd,
+    }
+  )
+
+  dependenciesSpinner?.succeed()
 }

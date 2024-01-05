@@ -4,12 +4,6 @@ import { loadConfig } from 'tsconfig-paths'
 import { z } from 'zod'
 import { resolveImport } from './resolve-import'
 
-export const DEFAULT_COMPONENTS = '@/components'
-export const DEFAULT_UTILS = '@/lib/utils'
-export const DEFAULT_TAILWIND_CSS = 'src/app/globals.css'
-export const DEFAULT_TAILWIND_CONFIG = 'tailwind.config.js'
-export const DEFAULT_GRAPHQL = 'src/app/graphql'
-
 const explorer = cosmiconfig('components', {
   searchPlaces: ['components.json'],
 })
@@ -33,6 +27,7 @@ export type RawConfig = z.infer<typeof rawConfigSchema>
 
 export const configSchema = rawConfigSchema.extend({
   resolvedPaths: z.object({
+    graphql: z.string(),
     tailwindConfig: z.string(),
     tailwindCss: z.string(),
     utils: z.string(),
