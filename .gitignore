@@ -1,7 +1,5 @@
 /node_modules
 my-app
- 
+dist
+
 .env
- 
-tsconfig.json
-tsup.config.ts
