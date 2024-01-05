@@ -1,5 +1,5 @@
 /node_modules
-my-app
-dist
+/my-app
+/dist
 
 .env
