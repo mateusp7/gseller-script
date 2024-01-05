@@ -28,6 +28,7 @@ import {
 } from '../helpers/get-config'
 import { getPackageManager } from '../helpers/get-package-manager'
 import { handleError } from '../helpers/handler-error'
+import { isWriteable } from '../helpers/is-writeable'
 import { logger } from '../helpers/logger'
 
 const initOptionsSchema = z.object({
@@ -133,15 +134,25 @@ export async function createGsellerJson(
   logger.info('')
   const spinner = ora(`Criando arquivo ${chalk.blue('gseller.json')}`).start()
 
-  const targetPath = path.resolve(cwd, 'gseller.json')
-  await fs.writeFile(targetPath, JSON.stringify(config, null, 2), 'utf-8')
-  spinner.succeed()
-  logger.info('')
+  const isWritable = await isWriteable(cwd)
 
-  return await resolveConfigPaths(cwd, config)
+  if (!isWritable) return undefined
+
+  try {
+    const targetPath = path.resolve(cwd, 'gseller.json')
+    await fs.writeFile(targetPath, JSON.stringify(config, null, 2), 'utf-8')
+    spinner.succeed()
+    logger.info('')
+
+    return await resolveConfigPaths(cwd, config)
+  } catch (err) {
+    logger.error(err)
+  }
 }
 
-export async function runInit(cwd: string, config: Config) {
+export async function runInit(cwd: string, config: Config | undefined) {
+  if (!config) return
+
   for (const [key, resolvedPath] of Object.entries(config.resolvedPaths)) {
     // Determine if the path is a file or directory.
     // TODO: is there a better way to do this?
