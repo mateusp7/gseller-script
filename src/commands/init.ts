@@ -18,14 +18,11 @@ import {
   rawConfigSchema,
 } from '../helpers/get-config'
 import { logger } from '../helpers/logger'
-import { makeDir } from '../helpers/make-dir'
 
 const initOptionsSchema = z.object({
   cwd: z.string(),
   yes: z.boolean(),
 })
-
-
 
 export const init = new Command()
   .command('init')

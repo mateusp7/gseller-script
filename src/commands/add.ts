@@ -35,8 +35,6 @@ export const add = new Command()
     process.cwd()
   )
   .action(async (components, opts) => {
-    console.log('opts', opts)
-    console.log('components', components)
     try {
       const options = addOptionsSchema.parse({
         components,
