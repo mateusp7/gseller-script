@@ -8,7 +8,7 @@ export const PROJECT_DEPENDENCIES = [
   'class-variance-authority',
   'clsx',
   'tailwind-merge',
-  'react-icons',
+  'lucide',
 ]
 
 export const UTILS = `import { type ClassValue, clsx } from "clsx"

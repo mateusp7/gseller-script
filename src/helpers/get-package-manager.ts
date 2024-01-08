@@ -1,8 +1,10 @@
 import { detect } from '@antfu/ni'
 
+export type PackageManagerType = 'yarn' | 'pnpm' | 'bun' | 'npm'
+
 export async function getPackageManager(
   targetDir: string
-): Promise<'yarn' | 'pnpm' | 'bun' | 'npm'> {
+): Promise<PackageManagerType> {
   const packageManager = await detect({ programmatic: true, cwd: targetDir })
 
   if (packageManager === 'yarn@berry') return 'yarn'

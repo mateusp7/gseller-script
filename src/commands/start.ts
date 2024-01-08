@@ -5,7 +5,9 @@ import path from 'path'
 import prompts from 'prompts'
 import { z } from 'zod'
 import { createApp } from '../helpers/create-app'
+import { getPackageManager } from '../helpers/get-package-manager'
 import { logger } from '../helpers/logger'
+import { onPromptState } from '../helpers/prompt-state'
 
 let projectPath: string = ''
 
@@ -35,7 +37,7 @@ export const start = new Command()
       }
 
       const prompt = await promptForConfig()
-      await initStart(prompt.resolvedProjectPath, urlGitHub)
+      await initStart(prompt.resolvedProjectPath, urlGitHub, cwd)
     } catch (err) {}
   })
 
@@ -45,6 +47,7 @@ export async function promptForConfig() {
   }
 
   const res = await prompts({
+    onState: onPromptState,
     type: 'text',
     name: 'path',
     message: `Qual o nome do seu projeto?`,
@@ -62,7 +65,8 @@ export async function promptForConfig() {
 
 export async function initStart(
   resolvedProjectPath: string,
-  urlGitHub: string
+  urlGitHub: string,
+  cwd: string
 ) {
   const highlight = (text: string) => chalk.cyan(text)
 
@@ -80,8 +84,11 @@ export async function initStart(
 
   logger.info('')
 
+  const packageManager = await getPackageManager(cwd)
+
   await createApp({
     appPath: resolvedProjectPath,
     example: urlGitHub,
+    packageManager,
   })
 }

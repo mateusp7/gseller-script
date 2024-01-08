@@ -1,10 +1,11 @@
 import chalk from 'chalk'
 import spawn from 'cross-spawn'
 import ora from 'ora'
+import { PackageManagerType } from './get-package-manager'
 
 export async function install(
   /** Indicate which package manager to use. */
-  packageManager: string,
+  packageManager: PackageManagerType,
   /** Indicate whether there is an active Internet connection.*/
   isOnline: boolean
 ): Promise<void> {

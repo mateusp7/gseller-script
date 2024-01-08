@@ -4,8 +4,8 @@ import { loadConfig } from 'tsconfig-paths'
 import { z } from 'zod'
 import { resolveImport } from './resolve-import'
 
-const explorer = cosmiconfig('components', {
-  searchPlaces: ['components.json'],
+const explorer = cosmiconfig('gseller', {
+  searchPlaces: ['gseller.json'],
 })
 
 export const rawConfigSchema = z

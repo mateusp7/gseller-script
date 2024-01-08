@@ -30,6 +30,7 @@ import { getPackageManager } from '../helpers/get-package-manager'
 import { handleError } from '../helpers/handler-error'
 import { isWriteable } from '../helpers/is-writeable'
 import { logger } from '../helpers/logger'
+import { onPromptState } from '../helpers/prompt-state'
 
 const initOptionsSchema = z.object({
   cwd: z.string(),
@@ -73,12 +74,14 @@ export async function promptForConfig(defaultConfig: Config | null = null) {
 
   const options = await prompts([
     {
+      onState: onPromptState,
       type: 'text',
       name: 'graphql',
       message: `Aonde está localizado a pasta ${highlight('graphql')}?`,
       initial: defaultConfig?.graphql ?? DEFAULT_GRAPHQL,
     },
     {
+      onState: onPromptState,
       type: 'text',
       name: 'tailwindConfig',
       message: `Aonde está localizado a pasta ${highlight(
@@ -87,12 +90,14 @@ export async function promptForConfig(defaultConfig: Config | null = null) {
       initial: defaultConfig?.tailwind.config ?? DEFAULT_TAILWIND_CONFIG,
     },
     {
+      onState: onPromptState,
       type: 'text',
       name: 'tailwindCss',
       message: `Aonde está localizado o arquivo ${highlight('global CSS')}?`,
       initial: defaultConfig?.tailwind.css ?? DEFAULT_TAILWIND_CSS,
     },
     {
+      onState: onPromptState,
       type: 'text',
       name: 'components',
       message: `Configure o alias de importação para ${highlight(
@@ -101,6 +106,7 @@ export async function promptForConfig(defaultConfig: Config | null = null) {
       initial: defaultConfig?.aliases['components'] ?? DEFAULT_COMPONENTS,
     },
     {
+      onState: onPromptState,
       type: 'text',
       name: 'utils',
       message: `Configure o alias de importação para ${highlight('utils')}:`,
@@ -154,17 +160,11 @@ export async function runInit(cwd: string, config: Config | undefined) {
   if (!config) return
 
   for (const [key, resolvedPath] of Object.entries(config.resolvedPaths)) {
-    // Determine if the path is a file or directory.
-    // TODO: is there a better way to do this?
     let dirname = path.extname(resolvedPath)
       ? path.dirname(resolvedPath)
       : resolvedPath
 
-    // If the utils alias is set to something like "@/lib/utils",
-    // assume this is a file and remove the "utils" file name.
-    // TODO: In future releases we should add support for individual utils.
     if (key === 'utils' && resolvedPath.endsWith('/utils')) {
-      // Remove /utils at the end.
       dirname = dirname.replace(/\/utils$/, '')
     }
 

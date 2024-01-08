@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { downloadAndExtractExample, downloadAndExtractRepo } from './download'
 import { existsInRepo, getRepoInfo, hasRepo } from './example'
+import { PackageManagerType } from './get-package-manager'
 import { install } from './install'
 import { isWriteable } from './is-writeable'
 import { logger } from './logger'
@@ -21,9 +22,11 @@ export class DownloadError extends Error {}
 export async function createApp({
   appPath,
   example,
+  packageManager,
 }: {
   appPath: string
   example: string
+  packageManager: PackageManagerType
 }): Promise<void> {
   let repoInfo: RepoInfo | undefined
 
@@ -150,10 +153,10 @@ export async function createApp({
 
   if (hasPackageJson) {
     console.log('Instalando pacotes, isso pode demorar um pouco.')
-    await install('yarn', true)
+    await install(packageManager, true)
   }
 
-  logger.info(`Projeto criado com ${chalk.green('Sucesso!')}`)
+  logger.info(`Projeto ${appName} criado com ${chalk.green('sucesso!')}`)
   logger.info('')
 
   logger.info(`Localização: ${chalk.blue(appPath)}`)
