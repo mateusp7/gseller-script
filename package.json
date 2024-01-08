@@ -8,6 +8,7 @@
   "scripts": {
     "dev:init": "tsx src/index.ts init",
     "dev:add": "tsx src/index.ts add",
+    "dev:start": "tsx src/index.ts start",
     "build": "tsup"
   },
   "type": "module",

@@ -38,7 +38,7 @@ const initOptionsSchema = z.object({
 
 export const init = new Command()
   .command('init')
-  .description('Iniciar projeto boilerplate Gseller')
+  .description('Iniciar as configurações para o projeto Gseller')
   .option('-y, --yes', 'Pular a confirmação de criação do projeto', false)
   .option(
     '-c, --cwd <cwd>',

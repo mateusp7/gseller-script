@@ -6,6 +6,7 @@ import { downloadAndExtractExample, downloadAndExtractRepo } from './download'
 import { existsInRepo, getRepoInfo, hasRepo } from './example'
 import { install } from './install'
 import { isWriteable } from './is-writeable'
+import { logger } from './logger'
 import { makeDir } from './make-dir'
 
 export type RepoInfo = {
@@ -14,6 +15,8 @@ export type RepoInfo = {
   branch: string
   filePath: string
 }
+
+export class DownloadError extends Error {}
 
 export async function createApp({
   appPath,
@@ -98,57 +101,62 @@ export async function createApp({
   const appName = path.basename(root)
 
   await makeDir(root)
-  const useYarn = 'yarn'
-  const originalDirectory = process.cwd()
 
-  console.log(`Criando um novo projeto Gseller em ${chalk.green(root)}.`)
-  console.log()
+  logger.info(`Criando um novo projeto Gseller em ${chalk.green(root)}.`)
+  logger.info()
 
   process.chdir(root)
 
   const packageJsonPath = path.join(root, 'package.json')
   let hasPackageJson = false
 
-  if (example) {
-    try {
-      if (repoInfo) {
-        const repoInfo2 = repoInfo
-        console.log(
-          `Baixando arquivos do repositório ${chalk.cyan(
-            example
-          )}. Isso pode demorar um pouco.`
-        )
-        console.log()
-        await retry(() => downloadAndExtractRepo(root, repoInfo2), {
-          retries: 3,
-        })
-      } else {
-        console.log(
-          `Baixando arquivos do repositório ${chalk.cyan(
-            example
-          )}. Isso pode demorar um pouco.`
-        )
-        console.log()
-        await retry(() => downloadAndExtractExample(root, example), {
-          retries: 3,
-        })
-      }
-    } catch (reason) {}
-    hasPackageJson = fs.existsSync(packageJsonPath)
-    if (hasPackageJson) {
-      console.log('Installing packages. This might take a couple of minutes.')
-      console.log()
+  try {
+    if (repoInfo) {
+      const repoInfo2 = repoInfo
+      logger.info(
+        `Baixando arquivos do repositório ${chalk.cyan(
+          example
+        )}. Isso pode demorar um pouco.`
+      )
+      logger.info()
 
-      await install('yarn', true)
-      console.log()
+      await retry(() => downloadAndExtractRepo(root, repoInfo2), {
+        retries: 3,
+      })
+    } else {
+      logger.info(
+        `Baixando arquivos do repositório ${chalk.cyan(
+          example
+        )}. Isso pode demorar um pouco.`
+      )
+      logger.info()
+      await retry(() => downloadAndExtractExample(root, example), {
+        retries: 3,
+      })
     }
+  } catch (reason) {
+    function isErrorLike(err: unknown): err is { message: string } {
+      return (
+        typeof err === 'object' &&
+        err !== null &&
+        typeof (err as { message?: unknown }).message === 'string'
+      )
+    }
+    throw new DownloadError(isErrorLike(reason) ? reason.message : reason + '')
   }
-  let cdpath: string
-  if (path.join(originalDirectory, appName) === appPath) {
-    cdpath = appName
-  } else {
-    cdpath = appPath
+  hasPackageJson = fs.existsSync(packageJsonPath)
+
+  logger.info('')
+
+  if (hasPackageJson) {
+    console.log('Instalando pacotes, isso pode demorar um pouco.')
+    await install('yarn', true)
   }
 
-  console.log(`${chalk.green('Sucesso!')} Criando ${appName} em ${appPath}`)
+  logger.info(`Projeto criado com ${chalk.green('Sucesso!')}`)
+  logger.info('')
+
+  logger.info(`Localização: ${chalk.blue(appPath)}`)
+
+  logger.info('')
 }

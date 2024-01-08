@@ -1,6 +1,6 @@
 /src
 /node_modules
-/my-app
+/gseller
 .env
  
 tsconfig.json
