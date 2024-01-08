@@ -15,10 +15,8 @@ import {
   DEFAULT_TAILWIND_CSS,
   DEFAULT_UTILS,
   PROJECT_DEPENDENCIES,
-  TAILWIND_CONFIG,
   TAILWIND_CONFIG_TS,
   UTILS,
-  UTILS_JS,
 } from '../helpers/constants'
 import {
   Config,
@@ -173,18 +171,7 @@ export async function runInit(cwd: string, config: Config | undefined) {
     }
   }
 
-  const extension = config.tsx ? 'ts' : 'js'
-
-  const tailwindConfigExtension = path.extname(
-    config.resolvedPaths.tailwindConfig
-  )
-
-  let tailwindConfigTemplate: string
-  if (tailwindConfigExtension === '.ts') {
-    tailwindConfigTemplate = TAILWIND_CONFIG_TS
-  } else {
-    tailwindConfigTemplate = TAILWIND_CONFIG
-  }
+  const tailwindConfigTemplate = TAILWIND_CONFIG_TS
 
   const spinnerWriteTailwindConfig = ora(
     `Criando arquivo ${chalk.blue('tailwind.config.ts')}`
@@ -192,7 +179,7 @@ export async function runInit(cwd: string, config: Config | undefined) {
   await fs.writeFile(
     config.resolvedPaths.tailwindConfig,
     template(tailwindConfigTemplate)({
-      extension,
+      extension: 'ts',
       prefix: '',
     }),
     'utf8'
@@ -203,11 +190,7 @@ export async function runInit(cwd: string, config: Config | undefined) {
   const spinnerWriteUtils = ora(
     `Criando arquivo ${chalk.blue('utils')}`
   )?.start()
-  await fs.writeFile(
-    `${config.resolvedPaths.utils}.${extension}`,
-    extension === 'ts' ? UTILS : UTILS_JS,
-    'utf8'
-  )
+  await fs.writeFile(`${config.resolvedPaths.utils}.ts`, UTILS, 'utf8')
   spinnerWriteUtils.succeed()
   logger.info('')
 
